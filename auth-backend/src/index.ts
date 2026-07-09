@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
 import express, { Application } from "express";
 import cors from "cors";
-
 import connectDB from "./config/db";
 import authRoutes from "../src/routes/auth.routes";
+import protectedRoutes from "./routes/protected.routes";
 
 dotenv.config();
 
@@ -16,6 +16,7 @@ app.use(express.json());
 
 // routes
 app.use("/api/auth", authRoutes);
+app.use("/api/protected", protectedRoutes);
 
 // start server
 const startServer = async (): Promise<void> => {

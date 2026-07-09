@@ -1,5 +1,8 @@
 import { useState } from "react";
-import type { RegisterForm } from "../types/auth.types";
+import type { AuthResponse, RegisterForm } from "../types/auth.types";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api.service";
+import { useAuth } from "../context/authContext";
 
 export default function Register() {
 
@@ -12,6 +15,9 @@ export default function Register() {
 
     const [error,setError]=useState<string>("");
     const [loading,setLoading]=useState<boolean>(false);
+
+    const navigate=useNavigate();
+    const {login}=useAuth();
 
     const handleChange= (e:React.ChangeEvent<HTMLInputElement>):void =>{
         setFormData({
@@ -27,7 +33,16 @@ export default function Register() {
 
     if(formData.password === formData.confirmPassword) {
         try {
-            console.log("user registered", formData);
+            const repo=await api.post<AuthResponse>("/auth/register",{
+                name:formData.name,
+                email:formData.email,
+                password:formData.password
+            });
+
+            login(repo.data.token,repo.data.user);
+
+            navigate("/dashboard");
+
         } catch(err) {
             setError("Registration failed!"); 
             setLoading(false);  

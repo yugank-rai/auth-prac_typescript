@@ -23,3 +23,9 @@ export interface ApiError {
     message:string;
     statusCode:number;
 }
+
+export interface User {
+    id:string;
+    name:string;
+    email:string;
+}

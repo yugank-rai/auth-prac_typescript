@@ -1,5 +1,10 @@
 import { useState } from "react";
 import type{ LoginForm } from "../types/auth.types";
+import { useAuth } from "../context/authContext";
+import api from "../services/api.service";
+import type { AuthResponse } from "../types/auth.types";
+import { useNavigate } from "react-router-dom";
+
 
 function Login() {
     // typed state!
@@ -18,6 +23,9 @@ function Login() {
             [e.target.name]: e.target.value
         });
     };
+        
+    const navigate = useNavigate();
+    const {login} =useAuth();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
         e.preventDefault();
@@ -25,10 +33,14 @@ function Login() {
         setError("");
 
         try {
-            // we'll connect to backend tomorrow!
-            console.log("Login data:", formData);
-        } catch(err) {
-            setError("Login failed!");
+           const response= await api.post<AuthResponse>("/auth/login",formData);
+
+           //saving token+user in the context
+           login(response.data.token, response.data.user);
+
+           navigate("/dashboard");
+        } catch(err:any) {
+             setError(err.response?.data?.message || "Login failed!");
         } finally {
             setLoading(false);
         }
