@@ -1,26 +1,60 @@
+import { useEffect ,useState} from "react";
 import { useAuth } from "../context/authContext";
+import api from "../services/api.service";
 import { useNavigate } from "react-router-dom";
+import type{ DashboardData } from "../types/auth.types"; 
 
 function Dashboard() {
-    const { user, logout, isAuthenticated } = useAuth();
+    const { logout, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
-    if(!isAuthenticated) {
-        navigate("/login");
-        return null;  
-    }
+    const [profile, setProfile] = useState<DashboardData | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
+
+    // ✅ useEffect FIRST before any checks!
+    useEffect(() => {
+        if(!isAuthenticated) {
+            navigate("/login");
+            return;
+        }
+
+        async function fetchDashboard() {
+            try {
+                const response = await api.get<DashboardData>("/protected/dashboard");
+                 console.log("API Response:", response.data);
+                setProfile(response.data);
+            } catch(error) {
+                 console.log("Error:", error); 
+                setError("Failed to fetch data!");
+                
+                
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchDashboard();
+    }, [isAuthenticated]); // ✅ add isAuthenticated as dependency!
+
+    
+    if(loading) return <p>Loading...</p>;
+    if(error) return <p style={{color: "red"}}>{error}</p>;
+    // Guard: the API may return an object without `user` — avoid runtime crash
+    if(!profile || !profile.user) return <p>No profile data available. Please login again.</p>;
 
     return (
         <div style={styles.container}>
             <div style={styles.card}>
-                <h1>Dashboard</h1>
-                <p>Welcome back <strong>{user?.name}</strong>!</p>
-                <p>Email: {user?.email}</p>
+                <h1>Dashboard 🎉</h1>
+                <p>{profile.message}</p>
+                <p>Name: <strong>{profile.user.name}</strong></p>
+                <p>Email: {profile.user.email}</p>
+                <p>Member since: {profile.user.createdAt ? new Date(profile.user.createdAt).toLocaleDateString() : "Unknown"}</p>
                 <button
                     style={styles.button}
                     onClick={() => {
-                        logout();           
-                        navigate("/login"); 
+                        logout();
+                        navigate("/login");
                     }}
                 >
                     Logout

@@ -4,7 +4,7 @@ import { useAuth } from "../context/authContext";
 import api from "../services/api.service";
 import type { AuthResponse } from "../types/auth.types";
 import { useNavigate } from "react-router-dom";
-
+import { loginSchema } from "../validators/auth.validators";
 
 function Login() {
     // typed state!
@@ -31,6 +31,13 @@ function Login() {
         e.preventDefault();
         setLoading(true);
         setError("");
+
+        const result = loginSchema.safeParse(formData);
+           if(!result.success) {
+            setError(result.error.issues[0].message);
+            setLoading(false);
+            return;
+             }
 
         try {
            const response= await api.post<AuthResponse>("/auth/login",formData);

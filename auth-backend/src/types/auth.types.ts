@@ -20,3 +20,14 @@ export interface JwtPayLoad {
 export interface AuthRequest extends Request {
     user?: JwtPayload | JwtPayLoad;
 }
+
+export interface UserProfile{
+    _id: string;
+    name: string;
+    email: string;
+    createdAt: string; 
+}
+export interface DashboardData {
+    message: string;
+    user: UserProfile;
+}

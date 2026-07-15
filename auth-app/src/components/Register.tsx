@@ -3,6 +3,7 @@ import type { AuthResponse, RegisterForm } from "../types/auth.types";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api.service";
 import { useAuth } from "../context/authContext";
+import { registerSchema } from "../validators/auth.validators";
 
 export default function Register() {
 
@@ -26,13 +27,24 @@ export default function Register() {
         });
     };
 
+
    const registerSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    if(formData.password === formData.confirmPassword) {
+             
+    const result =registerSchema.safeParse(formData);
+        if(!result.success){
+            setError(result.error.issues[0].message);
+      setLoading(false);
+      return;
+
+    }
+    
         try {
+
+   
             const repo=await api.post<AuthResponse>("/auth/register",{
                 name:formData.name,
                 email:formData.email,
@@ -43,13 +55,12 @@ export default function Register() {
 
             navigate("/dashboard");
 
-        } catch(err) {
-            setError("Registration failed!"); 
-            setLoading(false);  
+        } catch(err:any) {
+              setError(err.response?.data?.message || "Registration failed!");
+    } finally {
+        setLoading(false);
         }
-    } else {
-        setError("Passwords don't match!");
-        setLoading(false);  }
+    
 };
 
 return (

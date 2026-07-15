@@ -1,14 +1,25 @@
-import express, { Router, Request, Response } from "express";
+import express, { Router, Request, Response, NextFunction } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { RegisterBody, LoginBody } from "../types/auth.types";
+import { registerSchema, loginSchema } from "../validators/auth.validators";
 
 const router: Router = express.Router();
 
-router.post("/register", async (req: Request<{}, {}, RegisterBody>, res: Response) => {
+router.post("/register", async (req: Request<{}, {}, RegisterBody>, res: Response, next: NextFunction) => {
     try {
-        const { name, email, password } = req.body;
+       
+        const result = registerSchema.safeParse(req.body);
+        if(!result.success) {
+            res.status(400).json({
+                message: "Validation failed!",
+                errors: result.error.issues 
+            });
+            return;
+        }
+
+        const { name, email, password } = result.data;
 
         const userExists = await User.findOne({ email });
         if(userExists) {
@@ -40,13 +51,25 @@ router.post("/register", async (req: Request<{}, {}, RegisterBody>, res: Respons
         });
 
     } catch(error) {
-        res.status(500).json({ message: "Server error!" });
+        next(error); 
     }
 });
 
-router.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => {
+router.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response,next: NextFunction) => {
     try {
-        const { email, password } = req.body;
+
+
+        const result =loginSchema.safeParse(req.body);
+
+        if(!result.success){
+           res.status(400).json({
+                message: "Validation failed!",
+                errors: result.error
+              
+            });
+              return;
+        }
+        const { email, password } = result.data;
 
         const user = await User.findOne({ email });
         if(!user) {
@@ -76,7 +99,7 @@ router.post("/login", async (req: Request<{}, {}, LoginBody>, res: Response) => 
         });
 
     } catch(error) {
-        res.status(500).json({ message: "Server error!" });
+       next(error);
     }
 });
 
