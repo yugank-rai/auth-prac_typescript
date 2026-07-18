@@ -37,10 +37,36 @@ function Dashboard() {
     }, [isAuthenticated]); // ✅ add isAuthenticated as dependency!
 
     
-    if(loading) return <p>Loading...</p>;
-    if(error) return <p style={{color: "red"}}>{error}</p>;
-    // Guard: the API may return an object without `user` — avoid runtime crash
+   
     if(!profile || !profile.user) return <p>No profile data available. Please login again.</p>;
+
+
+    if(loading) return (
+    <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh"
+    }}>
+        <p style={{ fontSize: "1.5rem" }}>Loading... ⏳</p>
+    </div>
+);
+
+   if(error) return (
+    <div style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        flexDirection: "column"
+    }}>
+        <p style={{ color: "red", fontSize: "1.2rem" }}>❌ {error}</p>
+        <button onClick={() => navigate("/login")}>
+            Back to Login
+        </button>
+    </div>
+);
+
 
     return (
         <div style={styles.container}>
